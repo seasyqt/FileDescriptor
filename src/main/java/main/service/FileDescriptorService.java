@@ -51,5 +51,17 @@ public class FileDescriptorService {
     return jsonObject;
   }
 
+  /**
+   * Формирование названия файла с учетом уникальности файлов
+   */
+  public static String uniqueNameFile(String fullNameNewFile, int countSameFiles) {
+    StringBuilder stringBuilder = new StringBuilder();
+    stringBuilder.append(FileDescriptor.beforePoint(fullNameNewFile));
+    if (countSameFiles != 0) {
+      stringBuilder.append("(").append(countSameFiles).append(")");
+    }
+    stringBuilder.append(".").append(FileDescriptor.afterPoint(fullNameNewFile));
+    return stringBuilder.toString();
+  }
 
 }
