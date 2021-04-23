@@ -1,11 +1,12 @@
 package main.controller;
 
 import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 import main.model.*;
 import main.service.FileDescriptorService;
-import org.json.simple.JSONObject;
 import org.springframework.beans.factory.annotation.*;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.http.*;
@@ -35,14 +36,14 @@ public class FileDescriptorController {
         FileDescriptor newFile = new FileDescriptor(nameFile, file.getSize());
         descriptorRepository.save(newFile);
 
-        return ResponseEntity.ok(HttpStatus.OK);
+        return ResponseEntity.ok("File id: " + newFile.getId());
       } catch (Exception e) {
         System.out.println(e.getMessage());
         return new ResponseEntity(e.getStackTrace(), HttpStatus.BAD_REQUEST);
       }
 
     }
-    return new ResponseEntity(HttpStatus.NOT_FOUND);
+    return new ResponseEntity(HttpStatus.BAD_REQUEST);
   }
 
   /**
@@ -50,11 +51,7 @@ public class FileDescriptorController {
    */
   @GetMapping("/files")
   public ResponseEntity getFiles() {
-    List<FileDescriptor> listFiles = new ArrayList<>();
-    descriptorRepository
-        .findAll()
-        .forEach(listFiles::add);
-    return new ResponseEntity(listFiles, HttpStatus.OK);
+    return new ResponseEntity(descriptorRepository.findAll(), HttpStatus.OK);
   }
 
   /**
@@ -62,9 +59,9 @@ public class FileDescriptorController {
    */
   @GetMapping(value = "/files/{id}/descriptor")
   public ResponseEntity descriptionFile(@PathVariable int id) {
-    FileDescriptor fileDescriptor = descriptorRepository.findById(id).get();
-    JSONObject jsonObject = FileDescriptorService.createJSONInfoFileDescriptor(fileDescriptor);
-    return new ResponseEntity(jsonObject, HttpStatus.OK);
+    return descriptorRepository.findById(id).isPresent()
+        ? new ResponseEntity(descriptorRepository.findById(id).get(), HttpStatus.OK)
+        : new ResponseEntity(HttpStatus.NOT_FOUND);
   }
 
   /**
@@ -108,7 +105,11 @@ public class FileDescriptorController {
       FileDescriptor fileDescriptor = file.get();
       String fullNameFile = SAVED_PATH + fileDescriptor.getFullNameFile();
       getFile = new File(fullNameFile);
-      httpHeaders.setContentType(MediaType.valueOf("application/force-download"));
+      try {
+        httpHeaders.setContentType(MediaType.valueOf(Files.probeContentType(getFile.toPath())));
+      } catch (IOException e) {
+        e.printStackTrace();
+      }
       httpHeaders.setContentLength(getFile.length());
       httpHeaders.setContentDispositionFormData("attachment", fileDescriptor.getFullNameFile());
     }

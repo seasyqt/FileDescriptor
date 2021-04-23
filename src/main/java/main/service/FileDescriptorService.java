@@ -5,7 +5,6 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import main.model.FileDescriptor;
-import org.json.simple.JSONObject;
 import org.springframework.web.multipart.MultipartFile;
 
 public class FileDescriptorService {
@@ -35,20 +34,6 @@ public class FileDescriptorService {
             new FileOutputStream(new File(pathName.toString())));
     stream.write(fileBytes);
     stream.close();
-  }
-
-  /**
-   * Информация по файлу из DB в JSON формате
-   * @return JSONObject
-   */
-  public static JSONObject createJSONInfoFileDescriptor(FileDescriptor fileDescriptor) {
-    JSONObject jsonObject = new JSONObject();
-    jsonObject.put("id", fileDescriptor.getId());
-    jsonObject.put("fileName", fileDescriptor.getFileName());
-    jsonObject.put("ext", fileDescriptor.getExt());
-    jsonObject.put("size", fileDescriptor.getSize());
-    jsonObject.put("createdTime", fileDescriptor.getCreatedTs());
-    return jsonObject;
   }
 
   /**
